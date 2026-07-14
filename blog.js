@@ -8,10 +8,14 @@ const defaultPosts=[
 function loadPosts(){try{return JSON.parse(localStorage.getItem(KEY)||'{}').posts||defaultPosts}catch{return defaultPosts}}
 const escapeHTML=value=>String(value||'').replace(/[&<>'"]/g,character=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[character]));
 const dateLong=date=>new Intl.DateTimeFormat('es-ES',{day:'numeric',month:'long',year:'numeric'}).format(new Date(date+'T12:00:00'));
+let posts=[];
 function renderPosts(){
-  const posts=[...loadPosts()].sort((a,b)=>b.date.localeCompare(a.date));
+  posts=[...loadPosts()].sort((a,b)=>b.date.localeCompare(a.date));
   $('#postCount').textContent=`${posts.length} entrada${posts.length===1?'':'s'}`;
-  $('#allPostsGrid').innerHTML=posts.length?posts.map(post=>`<article class="post-card" id="post-${post.id}"><div class="post-image"><img src="${post.image||'assets/sevilleja-hero.png'}" alt="Imagen de ${escapeHTML(post.title)}"></div><div class="post-body"><div class="post-meta"><span>${escapeHTML(post.category)}</span><span>${dateLong(post.date)}</span></div><h3>${escapeHTML(post.title)}</h3><p>${escapeHTML(post.excerpt)}</p></div></article>`).join(''):'<div class="empty">Todavía no hay publicaciones en el blog.</div>';
+  $('#allPostsGrid').innerHTML=posts.length?posts.map(post=>`<article class="post-card" id="post-${post.id}"><div class="post-image"><img src="${post.image||'assets/sevilleja-hero.png'}" alt="Imagen de ${escapeHTML(post.title)}"></div><div class="post-body"><div class="post-meta"><span>${escapeHTML(post.category)}</span><span>${dateLong(post.date)}</span></div><h3>${escapeHTML(post.title)}</h3><p>${escapeHTML(post.excerpt)}</p><button class="read-more read-story" type="button" data-id="${post.id}">LEER HISTORIA →</button></div></article>`).join(''):'<div class="empty">Todavía no hay publicaciones en el blog.</div>';
 }
+function openPost(post){$('#postModalImage').src=post.image||'assets/sevilleja-hero.png';$('#postModalImage').alt=`Imagen de ${post.title}`;$('#postModalCategory').textContent=post.category;$('#postModalDate').textContent=dateLong(post.date);$('#postModalTitle').textContent=post.title;$('#postModalText').textContent=post.excerpt;$('#postModal').classList.add('open');$('#postModal').setAttribute('aria-hidden','false');document.body.classList.add('modal-open')}
+function closePost(){$('#postModal').classList.remove('open');$('#postModal').setAttribute('aria-hidden','true');document.body.classList.remove('modal-open')}
+document.addEventListener('click',event=>{const story=event.target.closest('.read-story');if(story){const post=posts.find(item=>item.id===story.dataset.id);if(post)openPost(post)}if(event.target.closest('[data-close]'))closePost()});
 $('#year').textContent=new Date().getFullYear();
 renderPosts();
